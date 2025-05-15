@@ -1,11 +1,11 @@
-## This is a template for project built using MERN stack technology.
+## This is a guide to setup Collab-notes web application.
 
 ### Step 1 - Clone and Install Dependencies
 
-
 ```bash
-git clone https://github.com/Sainath0604/MERN_Template.git
+git clone https://github.com/Sainath0604/collab-notes.git
 ```
+
 Please install node if you don't have it already.
 
 - [node](https://nodejs.org/)
@@ -18,7 +18,7 @@ Important: Install dependencies before changing files.
 cd Client
 ```
 
-and run this command 
+and run this command
 
 ```bash
 npm install
@@ -38,7 +38,7 @@ Important: Install dependencies before changing files.
 cd Server
 ```
 
-and run this command 
+and run this command
 
 ```bash
 npm install

@@ -1,4 +1,5 @@
 const Note = require("../models/Note");
+const notifyCollaborators = require("../utils/notifyCollaborators");
 
 exports.createNote = async (req, res) => {
   try {

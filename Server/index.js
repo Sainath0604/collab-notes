@@ -23,7 +23,10 @@ mongoose
 const authRoutes = require("./routes/auth");
 const noteRoutes = require("./routes/notes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const apiLimiter = require("./middleware/rateLimiter");
 
+app.use("/api", apiLimiter);
+// app.use("/api/notes", apiLimiter); //apply rate limiter to specific route groups
 app.use("/api/auth", authRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/notifications", notificationRoutes);
