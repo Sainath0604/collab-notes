@@ -1,18 +1,27 @@
-export function DeleteIcon() {
+import { BasicIconProps } from "./types";
+
+export function DeleteIcon({
+  height = "1em",
+  width = "1em",
+  stroke = "currentColor",
+  fill = "currentColor",
+  strokeWidth = 0,
+}: BasicIconProps) {
   return (
     <svg
-      stroke="currentColor"
-      fill="currentColor"
-      strokeWidth="0"
+      stroke={stroke}
+      fill={fill}
+      strokeWidth={strokeWidth}
       viewBox="0 0 24 24"
-      height="1em"
-      width="1em"
+      height={height}
+      width={width}
       xmlns="http://www.w3.org/2000/svg"
     >
       <path d="M7 4V2H17V4H22V6H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V6H2V4H7ZM6 6V20H18V6H6ZM9 9H11V17H9V9ZM13 9H15V17H13V9Z"></path>
     </svg>
   );
 }
+
 export function EditIcon() {
   return (
     <svg
