@@ -21,18 +21,48 @@ exports.createNote = async (req, res) => {
 
 exports.getMyNotes = async (req, res) => {
   try {
-    const notes = await Note.find({
+    const page = parseInt(req.query.page) || 1;
+    const limit = 8;
+    const skip = (page - 1) * limit;
+
+    const filter = {
       $or: [
         { createdBy: req.user._id },
         { collaborators: { $elemMatch: { userId: req.user._id } } },
       ],
-    }).sort({ lastUpdated: -1 });
+    };
 
-    res.json(notes);
+    const totalCount = await Note.countDocuments(filter);
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // If requested page exceeds total pages, return empty
+    if (page > totalPages && totalCount !== 0) {
+      return res.status(200).json({
+        currentPage: page,
+        totalPages,
+        totalNotes: totalCount,
+        notes: [],
+        message: "No notes found for this page",
+      });
+    }
+
+    const notes = await Note.find(filter)
+      .sort({ updatedAt: 1 }) // ascending order by updatedAt
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      currentPage: page,
+      totalPages,
+      totalNotes: totalCount,
+      notesPerPageLimit: limit,
+      notes,
+    });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Failed to fetch notes", error: err.message });
+    res.status(500).json({
+      message: "Failed to fetch notes with pagination",
+      error: err.message,
+    });
   }
 };
 
