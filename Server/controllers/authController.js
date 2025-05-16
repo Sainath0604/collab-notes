@@ -1,6 +1,7 @@
 // controllers/authController.js
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const tokenBlacklist = require("../utils/tokenBlacklist");
 
 const generateToken = (user) => {
   return jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -39,5 +40,22 @@ exports.login = async (req, res) => {
     res.status(200).json({ token });
   } catch (err) {
     res.status(500).json({ message: "Login failed", error: err.message });
+  }
+};
+
+exports.logout = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader)
+      return res.status(400).json({ message: "No token provided" });
+
+    const token = authHeader.split(" ")[1];
+    tokenBlacklist.add(token);
+
+    return res.status(200).json({ message: "Successfully logged out" });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Logout failed", error: err.message });
   }
 };

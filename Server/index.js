@@ -4,6 +4,7 @@ const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
 const { Server } = require("socket.io");
+require("dotenv").config();
 
 app.use(express.json());
 app.use(cors());
