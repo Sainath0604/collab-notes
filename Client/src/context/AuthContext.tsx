@@ -1,7 +1,14 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useRef,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { connectSocket, getSocket } from "../utils/socket";
 import { getLocalUser } from "../utils/utils";
+import { notification as antdNotification } from "antd";
 
 export interface Notification {
   _id: string;
@@ -25,14 +32,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const navigate = useNavigate();
+  const lastNotificationRef = useRef<{
+    message: string;
+    timestamp: number;
+  } | null>(null);
+
   const [token, setToken] = useState<string | null>(() =>
     sessionStorage.getItem("token")
   );
   const [newNotification, setNewNotification] = useState<Notification | null>(
     null
   );
-
-  const navigate = useNavigate();
   const [user] = useState(() => getLocalUser());
 
   const login = (newToken: string, email: string) => {
@@ -74,7 +85,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       s.on("new_notification", (notification) => {
         console.log("[Socket] 🔔 New Notification Received:", notification);
         setNewNotification(notification);
-        // Optionally trigger UI update, toast, etc.
+
+        // Show Ant Design notification
+        const now = Date.now();
+        const last = lastNotificationRef.current;
+
+        const isDuplicate =
+          last &&
+          last.message === notification.message &&
+          now - last.timestamp < 10_000; // 10 seconds
+
+        if (!isDuplicate) {
+          antdNotification.open({
+            message: "New Notification",
+            description: notification.message,
+            placement: "topRight",
+          });
+
+          lastNotificationRef.current = {
+            message: notification.message,
+            timestamp: now,
+          };
+        } else {
+          console.log("[Socket] 🔕 Skipped duplicate notification");
+        }
       });
 
       return () => {

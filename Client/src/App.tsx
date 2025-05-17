@@ -7,7 +7,6 @@ import {
   useParams,
 } from "react-router-dom";
 
-import NotePage from "./pages/NotePage";
 import AuthPage from "./pages/AuthPage";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import "../tailwind.css";
@@ -32,17 +31,6 @@ const RedirectIfAuthenticated: React.FC<{ children: React.ReactNode }> = ({
   ) : (
     <>{children}</>
   );
-};
-
-const NotePageWrapper: React.FC = () => {
-  const { noteId } = useParams<{ noteId: string }>();
-  if (!noteId)
-    return (
-      <div className="flex items-center justify-center h-screen text-red-500 text-lg">
-        Note ID missing
-      </div>
-    );
-  return <NotePage noteId={noteId} />;
 };
 
 const App: React.FC = () => {
@@ -82,14 +70,6 @@ const App: React.FC = () => {
               <Route path="create-note" element={<CreateNote />} />
             </Route>
 
-            <Route
-              path="/note/:noteId"
-              element={
-                <RequireAuth>
-                  <NotePageWrapper />
-                </RequireAuth>
-              }
-            />
             <Route path="/notes/:noteId/edit" element={<NoteEditor />} />
 
             <Route path="/" element={<Navigate to="/login" replace />} />
