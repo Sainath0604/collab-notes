@@ -8,5 +8,6 @@ router.get("/", auth, noteController.getMyNotes);
 router.put("/:noteId", auth, noteController.updateNote);
 router.delete("/:noteId", auth, noteController.deleteNote);
 router.post("/:noteId/share", auth, noteController.shareNote);
+router.get("/:noteId", auth, noteController.getNoteById);
 
 module.exports = router;

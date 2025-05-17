@@ -22,9 +22,6 @@ exports.createNote = async (req, res) => {
 
 exports.getMyNotes = async (req, res) => {
   try {
-    const user = await authenticateToken(req);
-    console.log("authenticated user:", user.name);
-
     const page = parseInt(req.query.page) || 1;
     const limit = 8;
     const skip = (page - 1) * limit;
@@ -150,5 +147,26 @@ exports.shareNote = async (req, res) => {
     res.json(note);
   } catch (err) {
     res.status(500).json({ message: "Share failed", error: err.message });
+  }
+};
+
+exports.getNoteById = async (req, res) => {
+  try {
+    const noteId = req.params.noteId;
+    const note = await Note.findById(noteId).populate(
+      "collaborators.userId",
+      "name email"
+    );
+
+    if (!note) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+
+    // Optional: Check if the requesting user has permission to view this note
+    // e.g., check if req.user._id is either creator or collaborator
+
+    res.json(note);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to get note", error: err.message });
   }
 };
