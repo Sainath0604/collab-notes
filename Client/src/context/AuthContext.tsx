@@ -1,9 +1,10 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { connectSocket } from "../utils/socket";
 
 interface AuthContextType {
   token: string | null;
-  login: (token: string) => void;
+  login: (token: string, email: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -19,7 +20,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const navigate = useNavigate();
 
-  const login = (newToken: string) => {
+  const login = (newToken: string, email: string) => {
+    sessionStorage.setItem("loggedInEmail", email);
     setToken(newToken);
   };
 
@@ -34,6 +36,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       sessionStorage.setItem("token", token);
     } else {
       sessionStorage.removeItem("token");
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (token) {
+      const s = connectSocket(token);
+      s.on("connect", () => console.log("Socket connected"));
     }
   }, [token]);
 

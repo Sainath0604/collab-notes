@@ -1,8 +1,10 @@
 // src/pages/Dashboard/DashboardLayout.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { logoutAPI } from "../../constant/api-constants";
+import { notification } from "antd";
+import { getSocket } from "../../utils/socket";
 
 const DashboardLayout: React.FC = () => {
   const location = useLocation();
@@ -30,6 +32,26 @@ const DashboardLayout: React.FC = () => {
       logout();
     }
   };
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    if (!socket) return;
+
+    socket.on("new_notification", (data) => {
+      notification.open({
+        message: "New Notification",
+        description: data.message,
+        duration: 5,
+      });
+
+      // Optionally store in context or refetch notifications
+    });
+
+    return () => {
+      socket.off("new_notification");
+    };
+  }, []);
 
   return (
     <div className="flex min-h-screen">

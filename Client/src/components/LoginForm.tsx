@@ -25,7 +25,7 @@ const LoginForm: React.FC = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Login failed");
 
-      login(data.token); // store token globally
+      login(data.token, email); // store token globally
       navigate("/dashboard");
     } catch (err: any) {
       setError(err.message);

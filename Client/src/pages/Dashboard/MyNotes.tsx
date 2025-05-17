@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { host } from "../../constant/api-constants";
 import ShareModal from "../../components/ShareModal";
 import { Tooltip } from "antd";
+import { getLoggedInEmail } from "../../utils/utils";
 
 interface Collaborator {
   userId: string;
@@ -42,6 +43,9 @@ const MyNotesPage: React.FC = () => {
     [id: string]: { name: string; email: string };
   }>({});
 
+  const loggedInEmail = getLoggedInEmail();
+
+  // Fetch all users once on mount (or token change)
   useEffect(() => {
     const fetchAllUsers = async () => {
       try {
@@ -66,6 +70,7 @@ const MyNotesPage: React.FC = () => {
     fetchAllUsers();
   }, [token]);
 
+  // Fetch notes for current page
   useEffect(() => {
     const fetchNotes = async () => {
       setLoading(true);
@@ -127,61 +132,72 @@ const MyNotesPage: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {notes.map((note) => (
-              <div
-                key={note._id}
-                className="bg-white shadow-md rounded-xl p-4 border hover:shadow-lg transition"
-              >
-                <h3 className="text-lg font-semibold">{note.title}</h3>
-                <p className="text-sm text-gray-600 line-clamp-3">
-                  {note.content}
-                </p>
-                <p className="text-xs text-gray-500/60 mt-1">
-                  Last updated: {new Date(note.updatedAt).toLocaleString()}
-                </p>
+            {notes.map((note) => {
+              // Filter collaborators to exclude logged-in user and invalid users
+              const filteredCollaborators = note.collaborators.filter(
+                (collab) => {
+                  const user = allUsers[collab.userId];
+                  return user && user.email !== loggedInEmail;
+                }
+              );
 
-                {note.collaborators.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {note.collaborators.map((collab) => {
-                      const user = allUsers[collab.userId];
-                      if (!user) return null;
-                      return (
-                        <Tooltip
-                          key={collab._id}
-                          title="Collaborator"
-                          placement="left"
-                          color="blue"
-                        >
-                          <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full border">
-                            {user.name} ({user.email})
-                          </span>
-                        </Tooltip>
-                      );
-                    })}
+              return (
+                <div
+                  key={note._id}
+                  className="bg-white shadow-md rounded-xl p-4 border hover:shadow-lg transition"
+                >
+                  <h3 className="text-lg font-semibold">{note.title}</h3>
+                  <p className="text-sm text-gray-600 line-clamp-3">
+                    {note.content}
+                  </p>
+                  <p className="text-xs text-gray-500/60 mt-1">
+                    Last updated: {new Date(note.updatedAt).toLocaleString()}
+                  </p>
+
+                  {/* Show filtered collaborators only if exists */}
+                  {filteredCollaborators.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {filteredCollaborators.map((collab) => {
+                        const user = allUsers[collab.userId];
+                        if (!user) return null;
+                        return (
+                          <Tooltip
+                            key={collab._id}
+                            title="Collaborator"
+                            placement="left"
+                            color="blue"
+                          >
+                            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full border">
+                              {user.name} ({user.email})
+                            </span>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <div className="flex justify-end mt-4 space-x-4">
+                    <button
+                      onClick={() => navigate(`/notes/${note._id}/edit`)}
+                      className="text-green-600 hover:underline text-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setActiveNoteId(note._id);
+                        setActiveNoteCollaborators(
+                          note.collaborators.map((c) => c.userId)
+                        );
+                      }}
+                      className="text-blue-600 hover:underline text-sm"
+                    >
+                      Share
+                    </button>
                   </div>
-                )}
-
-                <div className="flex justify-end mt-4 space-x-4">
-                  <button
-                    onClick={() => navigate(`/notes/${note._id}/edit`)}
-                    className="text-green-600 hover:underline text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      setActiveNoteId(note._id);
-                      setActiveNoteCollaborators(
-                        note.collaborators.map((c) => c.userId)
-                      );
-                    }}
-                    className="text-blue-600 hover:underline text-sm"
-                  >
-                    Share
-                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

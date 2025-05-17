@@ -32,7 +32,7 @@ const SignupForm: React.FC = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Signup failed");
 
-      login(data.token);
+      login(data.token, formData.email);
       navigate("/dashboard");
     } catch (err: any) {
       setError(err.message);

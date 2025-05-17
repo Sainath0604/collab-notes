@@ -1,20 +1,34 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { host } from "../constant/api-constants";
+import { getLoggedInEmail } from "../utils/utils";
 import { io, Socket } from "socket.io-client";
+
+interface Collaborator {
+  userId: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  permission: "read" | "write";
+}
 
 const NoteEditor: React.FC = () => {
   const { token } = useAuth();
   const { noteId } = useParams();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const loggedInEmail = getLoggedInEmail();
   const [dirty, setDirty] = useState(false); // <-- track unsaved changes
-
   const socketRef = useRef<Socket | null>(null);
   const autosaveTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const otherCollaborators = collaborators.filter(
+    (c) => c.userId.email !== loggedInEmail
+  );
 
   useEffect(() => {
     const fetchNote = async () => {
@@ -27,13 +41,13 @@ const NoteEditor: React.FC = () => {
 
         setTitle(data.title);
         setContent(data.content);
+        setCollaborators(data.collaborators);
       } catch (err: any) {
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-
     fetchNote();
   }, [noteId, token]);
 
@@ -121,6 +135,20 @@ const NoteEditor: React.FC = () => {
         className="w-full text-2xl font-semibold border-b focus:outline-none"
         placeholder="Note Title"
       />
+
+      {/* Collaborator emails */}
+      {otherCollaborators.length > 0 && (
+        <div className="text-sm text-gray-600">
+          Shared with:{" "}
+          {otherCollaborators.map((c, i) => (
+            <span key={c.userId._id} className="mr-2">
+              {c.userId.email}
+              {i < otherCollaborators.length - 1 && ","}
+            </span>
+          ))}
+        </div>
+      )}
+
       <textarea
         value={content}
         onChange={handleContentChange}
@@ -128,6 +156,7 @@ const NoteEditor: React.FC = () => {
         className="w-full h-[60vh] border rounded-lg p-4 resize-none focus:outline-none focus:ring"
         placeholder="Start writing..."
       />
+
       <div className="flex justify-end">
         <button
           onClick={handleSave}
