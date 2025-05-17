@@ -2,12 +2,20 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { host } from "../../constant/api-constants";
+import ShareModal from "../../components/ShareModal";
+import { Tooltip } from "antd";
 
+interface Collaborator {
+  userId: string;
+  permission: "read" | "write";
+  _id: string;
+}
 interface Note {
   _id: string;
   title: string;
   content: string;
   updatedAt: string;
+  collaborators: Collaborator[];
 }
 
 interface ApiResponse {
@@ -26,6 +34,37 @@ const MyNotesPage: React.FC = () => {
   const [error, setError] = useState("");
   const { token } = useAuth();
   const navigate = useNavigate();
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const [activeNoteCollaborators, setActiveNoteCollaborators] = useState<
+    string[]
+  >([]);
+  const [allUsers, setAllUsers] = useState<{
+    [id: string]: { name: string; email: string };
+  }>({});
+
+  useEffect(() => {
+    const fetchAllUsers = async () => {
+      try {
+        const res = await fetch(`${host}/api/auth/users`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to fetch users");
+
+        const userMap: { [id: string]: { name: string; email: string } } = {};
+        for (const user of data) {
+          userMap[user._id] = { name: user.name, email: user.email };
+        }
+        setAllUsers(userMap);
+      } catch (err) {
+        console.error("Error fetching users", err);
+      }
+    };
+
+    fetchAllUsers();
+  }, [token]);
 
   useEffect(() => {
     const fetchNotes = async () => {
@@ -70,14 +109,59 @@ const MyNotesPage: React.FC = () => {
           >
             <h3 className="text-lg font-semibold">{note.title}</h3>
             <p className="text-sm text-gray-600 line-clamp-3">{note.content}</p>
-            <p className="text-xs text-gray-400 mt-2">
-              {/* Created: {new Date(note.createdAt).toLocaleString()} */}
-            </p>
-            <p className="text-xs text-gray-500/60">
+            <p className="text-xs text-gray-500/60 mt-1">
               Last updated: {new Date(note.updatedAt).toLocaleString()}
             </p>
+            {note.collaborators.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {note.collaborators.map((collab) => {
+                  const user = allUsers[collab.userId];
+                  if (!user) return null;
+                  return (
+                    <Tooltip
+                      title={"Collaborator"}
+                      placement="left"
+                      color="blue"
+                    >
+                      <span
+                        key={collab._id}
+                        className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full border"
+                      >
+                        {user.name} ({user.email})
+                      </span>
+                    </Tooltip>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="flex justify-end mt-4">
+              <button
+                // onClick={() => openShareModal(note._id)}
+                onClick={() => {
+                  setActiveNoteId(note._id);
+                  setActiveNoteCollaborators(
+                    note.collaborators.map((c) => c.userId)
+                  );
+                }}
+                className="text-blue-600 hover:underline text-sm"
+              >
+                Share
+              </button>
+            </div>
           </div>
         ))}
+
+        {activeNoteId && (
+          <ShareModal
+            noteId={activeNoteId}
+            existingCollaboratorIds={activeNoteCollaborators}
+            onClose={() => {
+              setActiveNoteId(null);
+              setActiveNoteCollaborators([]);
+            }}
+          />
+        )}
       </div>
 
       {/* Pagination Controls */}

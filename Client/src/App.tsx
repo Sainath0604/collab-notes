@@ -16,6 +16,7 @@ import DashboardLayout from "./pages/Dashboard/DashboardLayout";
 import MyNotes from "./pages/Dashboard/MyNotes";
 import SharedWithMe from "./pages/Dashboard/SharedWithMe";
 import CreateNote from "./pages/Dashboard/CreateNote";
+import NoteEditor from "./pages/NoteEditor";
 
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -89,6 +90,7 @@ const App: React.FC = () => {
                 </RequireAuth>
               }
             />
+            <Route path="/notes/:noteId/edit" element={<NoteEditor />} />
 
             <Route path="/" element={<Navigate to="/login" replace />} />
           </Routes>
