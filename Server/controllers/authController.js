@@ -2,6 +2,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const tokenBlacklist = require("../utils/tokenBlacklist");
+const { authenticateToken } = require("./authUtils");
 
 const generateToken = (user) => {
   return jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -57,5 +58,19 @@ exports.logout = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Logout failed", error: err.message });
+  }
+};
+
+exports.getUsers = async (req, res) => {
+  try {
+    const user = await authenticateToken(req);
+    console.log("authenticated user:", user.name);
+
+    const users = await User.find({}, { password: 0, __v: 0 });
+    res.status(200).json(users);
+  } catch (err) {
+    res.status(err.status || 500).json({
+      message: err.message || "Internal Server Error",
+    });
   }
 };

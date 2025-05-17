@@ -1,5 +1,6 @@
 const Note = require("../models/Note");
 const notifyCollaborators = require("../utils/notifyCollaborators");
+const { authenticateToken } = require("./authUtils");
 
 exports.createNote = async (req, res) => {
   try {
@@ -21,6 +22,9 @@ exports.createNote = async (req, res) => {
 
 exports.getMyNotes = async (req, res) => {
   try {
+    const user = await authenticateToken(req);
+    console.log("authenticated user:", user.name);
+
     const page = parseInt(req.query.page) || 1;
     const limit = 8;
     const skip = (page - 1) * limit;
