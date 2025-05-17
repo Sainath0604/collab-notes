@@ -72,6 +72,7 @@ io.on("connection", (socket) => {
     console.log(
       `📤 [send-update] Broadcasting update to note ${noteId} from ${socket.id}`
     );
+    console.log(`📤 [send-update] updatedContent:`, updatedContent);
     socket.to(noteId).emit("receive-update", updatedContent);
   });
 

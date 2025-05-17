@@ -23,13 +23,24 @@ const NoteEditor: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const loggedInEmail = getLoggedInEmail();
-  const [dirty, setDirty] = useState(false); // <-- track unsaved changes
+  const [dirty, setDirty] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const autosaveTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const otherCollaborators = collaborators.filter(
     (c) => c.userId.email !== loggedInEmail
   );
 
+  const isTypingRef = useRef(false);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastReceivedUpdateRef = useRef<{
+    title: string;
+    content: string;
+  } | null>(null);
+  const lastSentUpdateRef = useRef<{ title: string; content: string } | null>(
+    null
+  );
+
+  // Fetch note
   useEffect(() => {
     const fetchNote = async () => {
       try {
@@ -51,6 +62,7 @@ const NoteEditor: React.FC = () => {
     fetchNote();
   }, [noteId, token]);
 
+  // Setup socket connection
   useEffect(() => {
     const socket = io(host, {
       auth: { token },
@@ -58,43 +70,82 @@ const NoteEditor: React.FC = () => {
 
     socketRef.current = socket;
 
-    socket.emit("note:join", noteId);
+    socket.emit("join-note", noteId);
+    console.log("[Socket] ✅ Joined note room:", noteId);
 
-    socket.on("note:sync", (data: { title: string; content: string }) => {
-      setTitle(data.title);
-      setContent(data.content);
+    socket.on("receive-update", (data: { title: string; content: string }) => {
+      console.log("[Socket] ✏️ receive-update received:", data);
+
+      // Skip update if it's the same as last sent (avoid loop)
+      const lastSent = lastSentUpdateRef.current;
+      if (
+        lastSent &&
+        lastSent.title === data.title &&
+        lastSent.content === data.content
+      ) {
+        console.log("[Socket] 🔁 Ignored own echo");
+        return;
+      }
+
+      lastReceivedUpdateRef.current = data;
+
+      if (!isTypingRef.current) {
+        console.log("[Socket] ✅ Applying remote update");
+        setTitle(data.title);
+        setContent(data.content);
+      } else {
+        console.log("[Socket] ✋ Skipped sync - user is typing");
+      }
     });
 
     return () => {
       socket.emit("note:leave", noteId);
       socket.disconnect();
+      console.log("[Socket] ❌ Disconnected from note room:", noteId);
     };
   }, [noteId, token]);
 
   const broadcastChange = (newTitle: string, newContent: string) => {
-    socketRef.current?.emit("note:update", {
+    console.log("[Socket] 📤 Emitting send-update", { newTitle, newContent });
+
+    lastSentUpdateRef.current = { title: newTitle, content: newContent };
+
+    socketRef.current?.emit("send-update", {
       noteId,
-      title: newTitle,
-      content: newContent,
+      updatedContent: {
+        title: newTitle,
+        content: newContent,
+      },
     });
+  };
+
+  const markTyping = () => {
+    isTypingRef.current = true;
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      isTypingRef.current = false;
+      console.log("[Typing] User stopped typing");
+    }, 2000); // 2s of no activity = stopped typing
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
-    broadcastChange(newTitle, content);
     setDirty(true);
+    broadcastChange(newTitle, content);
+    markTyping();
   };
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
-    broadcastChange(title, newContent);
     setDirty(true);
+    broadcastChange(title, newContent);
+    markTyping();
   };
 
   const handleSave = async () => {
-    if (!dirty) return; // skip if no changes
+    if (!dirty) return;
     try {
       const res = await fetch(`${host}/api/notes/${noteId}`, {
         method: "PUT",
@@ -106,13 +157,13 @@ const NoteEditor: React.FC = () => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to save note");
-      setDirty(false); // reset dirty state after save
+      setDirty(false);
+      console.log("[Save] ✅ Autosaved");
     } catch (err: any) {
-      console.error("Autosave failed:", err.message);
+      console.error("[Save] ❌ Autosave failed:", err.message);
     }
   };
 
-  // ⏱️ Autosave every 5 seconds
   useEffect(() => {
     autosaveTimer.current = setInterval(() => {
       handleSave();
@@ -136,7 +187,6 @@ const NoteEditor: React.FC = () => {
         placeholder="Note Title"
       />
 
-      {/* Collaborator emails */}
       {otherCollaborators.length > 0 && (
         <div className="text-sm text-gray-600">
           Shared with:{" "}
