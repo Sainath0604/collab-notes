@@ -60,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const socket = getSocket();
     if (socket && socket.connected) {
-      console.log("[Socket] Disconnecting on logout");
+      // console.log("[Socket] Disconnecting on logout");
       socket.disconnect();
     }
 
@@ -70,20 +70,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Connect socket when token becomes available
   useEffect(() => {
     if (token) {
-      console.log("[Socket] Connecting to server with token...");
+      // console.log("[Socket] Connecting to server with token...");
       const s = connectSocket(token);
 
       s.on("connect", () => {
-        console.log("[Socket] Connected:", s.id);
+        // console.log("[Socket] Connected:", s.id);
         const user = getLocalUser();
         if (user?._id) {
-          console.log(`[Socket] Emitting join for user ${user._id}`);
+          // console.log(`[Socket] Emitting join for user ${user._id}`);
           s.emit("join", user._id);
         }
       });
 
       s.on("new_notification", (notification) => {
-        console.log("[Socket] 🔔 New Notification Received:", notification);
+        // console.log("[Socket] 🔔 New Notification Received:", notification);
         setNewNotification(notification);
 
         // Show Ant Design notification
@@ -107,12 +107,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             timestamp: now,
           };
         } else {
-          console.log("[Socket] 🔕 Skipped duplicate notification");
+          // console.log("[Socket] 🔕 Skipped duplicate notification");
         }
       });
 
       return () => {
-        console.log("[Socket] Cleaning up socket connection");
+        // console.log("[Socket] Cleaning up socket connection");
         s.off("new_notification");
         s.disconnect();
       };
@@ -123,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const socket = getSocket();
     if (token && user?._id && socket) {
-      console.log(`[Socket] Emitting join for user: ${user._id}`);
+      // console.log(`[Socket] Emitting join for user: ${user._id}`);
       socket.emit("join", user._id);
     }
   }, [token, user?._id]);

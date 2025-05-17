@@ -71,10 +71,10 @@ const NoteEditor: React.FC = () => {
     socketRef.current = socket;
 
     socket.emit("join-note", noteId);
-    console.log("[Socket] ✅ Joined note room:", noteId);
+    // console.log("[Socket] ✅ Joined note room:", noteId);
 
     socket.on("receive-update", (data: { title: string; content: string }) => {
-      console.log("[Socket] ✏️ receive-update received:", data);
+      // console.log("[Socket] ✏️ receive-update received:", data);
 
       // Skip update if it's the same as last sent (avoid loop)
       const lastSent = lastSentUpdateRef.current;
@@ -83,30 +83,30 @@ const NoteEditor: React.FC = () => {
         lastSent.title === data.title &&
         lastSent.content === data.content
       ) {
-        console.log("[Socket] 🔁 Ignored own echo");
+        // console.log("[Socket] 🔁 Ignored own echo");
         return;
       }
 
       lastReceivedUpdateRef.current = data;
 
       if (!isTypingRef.current) {
-        console.log("[Socket] ✅ Applying remote update");
+        // console.log("[Socket] ✅ Applying remote update");
         setTitle(data.title);
         setContent(data.content);
       } else {
-        console.log("[Socket] ✋ Skipped sync - user is typing");
+        // console.log("[Socket] ✋ Skipped sync - user is typing");
       }
     });
 
     return () => {
       socket.emit("note:leave", noteId);
       socket.disconnect();
-      console.log("[Socket] ❌ Disconnected from note room:", noteId);
+      // console.log("[Socket] ❌ Disconnected from note room:", noteId);
     };
   }, [noteId, token]);
 
   const broadcastChange = (newTitle: string, newContent: string) => {
-    console.log("[Socket] 📤 Emitting send-update", { newTitle, newContent });
+    // console.log("[Socket] 📤 Emitting send-update", { newTitle, newContent });
 
     lastSentUpdateRef.current = { title: newTitle, content: newContent };
 
@@ -124,7 +124,7 @@ const NoteEditor: React.FC = () => {
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
       isTypingRef.current = false;
-      console.log("[Typing] User stopped typing");
+      // console.log("[Typing] User stopped typing");
     }, 2000); // 2s of no activity = stopped typing
   };
 
@@ -158,7 +158,7 @@ const NoteEditor: React.FC = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to save note");
       setDirty(false);
-      console.log("[Save] ✅ Autosaved");
+      // console.log("[Save] ✅ Autosaved");
     } catch (err: any) {
       console.error("[Save] ❌ Autosave failed:", err.message);
     }

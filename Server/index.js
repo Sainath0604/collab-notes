@@ -24,7 +24,7 @@ const io = new Server(server, {
 // ========== Socket Authentication Middleware ==========
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
-  console.log("[Socket Auth] Token received:", token);
+  // console.log("[Socket Auth] Token received:", token);
 
   if (!token) {
     console.error("[Socket Auth] ❌ Missing token");
@@ -33,12 +33,12 @@ io.use((socket, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("[Socket Auth] ✅ Token decoded:", decoded);
+    // console.log("[Socket Auth] ✅ Token decoded:", decoded);
 
     // socket.user = decoded;
     socket.user = { ...decoded, _id: decoded.id };
     socket.join(decoded.id.toString());
-    console.log(`[Socket Auth] 🟢 User ${decoded.id} joined personal room`);
+    // console.log(`[Socket Auth] 🟢 User ${decoded.id} joined personal room`);
     next();
   } catch (err) {
     console.error("[Socket Auth] ❌ Invalid token:", err.message);
@@ -49,13 +49,13 @@ io.use((socket, next) => {
 // ========== Socket Events ==========
 io.on("connection", (socket) => {
   const userId = socket.user?.id;
-  console.log(
-    `[Socket Auth] 🟢 Socket Events- userId: ${userId}, socketId: ${socket.id}`
-  );
+  // console.log(
+  //   `[Socket Auth] 🟢 Socket Events- userId: ${userId}, socketId: ${socket.id}`
+  // );
   if (userId) {
-    console.log(
-      `✅ [Socket Connected] User ${userId} connected with socket ${socket.id}`
-    );
+    // console.log(
+    //   `✅ [Socket Connected] User ${userId} connected with socket ${socket.id}`
+    // );
     socket.join(userId.toString());
   } else {
     console.warn("⚠️ [Socket Connected] Connected without a valid user");
@@ -63,25 +63,25 @@ io.on("connection", (socket) => {
 
   socket.on("join-note", (noteId) => {
     socket.join(noteId);
-    console.log(
-      `📝 [join-note] Socket ${socket.id} joined note room: ${noteId}`
-    );
+    // console.log(
+    //   `📝 [join-note] Socket ${socket.id} joined note room: ${noteId}`
+    // );
   });
 
   socket.on("send-update", ({ noteId, updatedContent }) => {
-    console.log(
-      `📤 [send-update] Broadcasting update to note ${noteId} from ${socket.id}`
-    );
-    console.log(`📤 [send-update] updatedContent:`, updatedContent);
+    // console.log(
+    //   `📤 [send-update] Broadcasting update to note ${noteId} from ${socket.id}`
+    // );
+    // console.log(`📤 [send-update] updatedContent:`, updatedContent);
     socket.to(noteId).emit("receive-update", updatedContent);
   });
 
   socket.on("disconnect", () => {
-    console.log(
-      `❌ [Socket Disconnected] User ${userId || "unknown"} (socket: ${
-        socket.id
-      })`
-    );
+    // console.log(
+    //   `❌ [Socket Disconnected] User ${userId || "unknown"} (socket: ${
+    //     socket.id
+    //   })`
+    // );
   });
 });
 
@@ -92,7 +92,7 @@ app.set("io", io);
 const db_name = "collabNotes";
 const mongoUrl =
   process.env.NODE_ENV === "production"
-    ? process.env.DATABASE_URL
+    ? `${process.env.DATABASE_URL}/${db_name}`
     : `mongodb://0.0.0.0:27017/${db_name}`;
 
 mongoose

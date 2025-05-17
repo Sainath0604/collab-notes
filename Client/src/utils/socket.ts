@@ -4,17 +4,17 @@ import { host } from "../constant/api-constants";
 let socket: Socket;
 
 export const connectSocket = (token: string) => {
-  console.log("[Socket] Attempting connection with token:", token);
+  // console.log("[Socket] Attempting connection with token:", token);
 
   if (!socket || !socket.connected) {
-    console.log("[Socket] Connecting to server with token...");
+    // console.log("[Socket] Connecting to server with token...");
     socket = io(host, {
       auth: { token },
       transports: ["websocket"],
     });
 
     socket.on("connect", () => {
-      console.log("[Socket] Connected:", socket.id);
+      // console.log("[Socket] Connected:", socket.id);
     });
 
     socket.on("connect_error", (err) => {
@@ -25,7 +25,7 @@ export const connectSocket = (token: string) => {
       console.warn("[Socket] Disconnected:", reason);
     });
   } else {
-    console.log("[Socket] Already connected, skipping reconnection");
+    // console.log("[Socket] Already connected, skipping reconnection");
   }
 
   return socket;
