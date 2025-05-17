@@ -1,7 +1,7 @@
-// src/components/LoginForm.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { loginAPI } from "../constant/api-constants";
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -14,7 +14,7 @@ const LoginForm: React.FC = () => {
     e.preventDefault();
     setError("");
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(loginAPI, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -33,35 +33,34 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-      <div>
-        <label className="block text-sm font-medium mb-1">Email</label>
+    <div className="max-w-md mx-auto mt-2">
+      <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
+      {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border px-4 py-2 rounded"
+          placeholder="Email"
           required
         />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Password</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border px-4 py-2 rounded"
+          placeholder="Password"
           required
         />
-      </div>
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition"
-      >
-        Login
-      </button>
-    </form>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+        >
+          Login
+        </button>
+      </form>
+    </div>
   );
 };
 

@@ -7,13 +7,15 @@ import {
   useParams,
 } from "react-router-dom";
 
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
-import Dashboard from "./pages/Dashboard";
 import NotePage from "./pages/NotePage";
 import AuthPage from "./pages/AuthPage";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import "../tailwind.css";
+import "antd/dist/reset.css";
+import DashboardLayout from "./pages/Dashboard/DashboardLayout";
+import MyNotes from "./pages/Dashboard/MyNotes";
+import SharedWithMe from "./pages/Dashboard/SharedWithMe";
+import CreateNote from "./pages/Dashboard/CreateNote";
 
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -69,10 +71,16 @@ const App: React.FC = () => {
               path="/dashboard"
               element={
                 <RequireAuth>
-                  <Dashboard />
+                  <DashboardLayout />
                 </RequireAuth>
               }
-            />
+            >
+              <Route index element={<MyNotes />} />
+              <Route path="my-notes" element={<MyNotes />} />
+              <Route path="shared-with-me" element={<SharedWithMe />} />
+              <Route path="create-note" element={<CreateNote />} />
+            </Route>
+
             <Route
               path="/note/:noteId"
               element={

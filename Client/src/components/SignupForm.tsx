@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { signupAPI } from "../constant/api-constants";
 
 const SignupForm: React.FC = () => {
   const { login } = useAuth();
@@ -22,7 +23,7 @@ const SignupForm: React.FC = () => {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/signup", {
+      const res = await fetch(signupAPI, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -39,7 +40,7 @@ const SignupForm: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-2 border p-6 bg-white shadow-md rounded-xl">
+    <div className="max-w-md mx-auto mt-2 p-6">
       <h2 className="text-2xl font-bold mb-4 text-center">Sign Up</h2>
       {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
