@@ -102,55 +102,88 @@ const MyNotesPage: React.FC = () => {
     <div className="flex flex-col h-full max-h-[calc(100vh-4rem)] px-4 py-6">
       {/* Scrollable Notes Area */}
       <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-        {notes.map((note) => (
-          <div
-            key={note._id}
-            className="bg-white shadow-md rounded-xl p-4 border hover:shadow-lg transition"
-          >
-            <h3 className="text-lg font-semibold">{note.title}</h3>
-            <p className="text-sm text-gray-600 line-clamp-3">{note.content}</p>
-            <p className="text-xs text-gray-500/60 mt-1">
-              Last updated: {new Date(note.updatedAt).toLocaleString()}
+        {notes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-12">
+            <h2 className="text-xl font-semibold text-gray-700">
+              You don’t have any personal notes.
+            </h2>
+            <p className="text-gray-500">
+              Get started by creating or viewing shared notes.
             </p>
-            {note.collaborators.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {note.collaborators.map((collab) => {
-                  const user = allUsers[collab.userId];
-                  if (!user) return null;
-                  return (
-                    <Tooltip
-                      title={"Collaborator"}
-                      placement="left"
-                      color="blue"
-                    >
-                      <span
-                        key={collab._id}
-                        className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full border"
-                      >
-                        {user.name} ({user.email})
-                      </span>
-                    </Tooltip>
-                  );
-                })}
-              </div>
-            )}
-
-            <div className="flex justify-end mt-4">
+            <div className="flex gap-4">
               <button
-                // onClick={() => openShareModal(note._id)}
-                onClick={() => {
-                  setActiveNoteId(note._id);
-                  setActiveNoteCollaborators(
-                    note.collaborators.map((c) => c.userId)
-                  );
-                }}
-                className="text-blue-600 hover:underline text-sm"
+                onClick={() => navigate("/dashboard/shared-with-me")}
+                className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600"
               >
-                Share
+                View Shared Notes
+              </button>
+              <button
+                onClick={() => navigate("/dashboard/create-note")}
+                className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600"
+              >
+                Create Note
               </button>
             </div>
           </div>
-        ))}
+        ) : (
+          <div className="space-y-4">
+            {notes.map((note) => (
+              <div
+                key={note._id}
+                className="bg-white shadow-md rounded-xl p-4 border hover:shadow-lg transition"
+              >
+                <h3 className="text-lg font-semibold">{note.title}</h3>
+                <p className="text-sm text-gray-600 line-clamp-3">
+                  {note.content}
+                </p>
+                <p className="text-xs text-gray-500/60 mt-1">
+                  Last updated: {new Date(note.updatedAt).toLocaleString()}
+                </p>
+
+                {note.collaborators.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {note.collaborators.map((collab) => {
+                      const user = allUsers[collab.userId];
+                      if (!user) return null;
+                      return (
+                        <Tooltip
+                          key={collab._id}
+                          title="Collaborator"
+                          placement="left"
+                          color="blue"
+                        >
+                          <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full border">
+                            {user.name} ({user.email})
+                          </span>
+                        </Tooltip>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="flex justify-end mt-4 space-x-4">
+                  <button
+                    onClick={() => navigate(`/notes/${note._id}/edit`)}
+                    className="text-green-600 hover:underline text-sm"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveNoteId(note._id);
+                      setActiveNoteCollaborators(
+                        note.collaborators.map((c) => c.userId)
+                      );
+                    }}
+                    className="text-blue-600 hover:underline text-sm"
+                  >
+                    Share
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {activeNoteId && (
           <ShareModal

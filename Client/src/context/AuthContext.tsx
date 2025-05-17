@@ -14,7 +14,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem("token")
+    sessionStorage.getItem("token")
   );
 
   const navigate = useNavigate();
@@ -25,15 +25,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = () => {
     setToken(null);
-    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
     navigate("/login");
   };
 
   useEffect(() => {
     if (token) {
-      localStorage.setItem("token", token);
+      sessionStorage.setItem("token", token);
     } else {
-      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
     }
   }, [token]);
 

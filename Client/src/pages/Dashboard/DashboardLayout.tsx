@@ -15,7 +15,7 @@ const DashboardLayout: React.FC = () => {
   ];
 
   const handleLogout = async () => {
-    const bearerToken = localStorage.getItem("token");
+    const bearerToken = sessionStorage.getItem("token");
 
     try {
       await fetch(logoutAPI, {
@@ -42,6 +42,8 @@ const DashboardLayout: React.FC = () => {
                 key={link.to}
                 to={link.to}
                 className={`block px-3 py-2 rounded ${
+                  (location.pathname === "/dashboard" &&
+                    link.to === "/dashboard/my-notes") ||
                   location.pathname === link.to
                     ? "bg-gray-700"
                     : "hover:bg-gray-700"
