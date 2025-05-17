@@ -8,7 +8,7 @@ const notifyCollaborators = async (note, actorId) => {
     .map((c) => ({
       user: c.userId,
       note: note._id,
-      type: "note_updated",
+      type: "updated",
       message: `Note "${note.title}" was updated.`,
     }));
 
