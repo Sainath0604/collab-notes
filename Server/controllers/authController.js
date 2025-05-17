@@ -1,11 +1,21 @@
 // controllers/authController.js
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const tokenBlacklist = require("../utils/tokenBlacklist");
+const { authenticateToken } = require("./authUtils");
 
 const generateToken = (user) => {
-  return jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
+  return jwt.sign(
+    {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "7d",
+    }
+  );
 };
 
 exports.signup = async (req, res) => {
@@ -39,5 +49,36 @@ exports.login = async (req, res) => {
     res.status(200).json({ token });
   } catch (err) {
     res.status(500).json({ message: "Login failed", error: err.message });
+  }
+};
+
+exports.logout = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader)
+      return res.status(400).json({ message: "No token provided" });
+
+    const token = authHeader.split(" ")[1];
+    tokenBlacklist.add(token);
+
+    return res.status(200).json({ message: "Successfully logged out" });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Logout failed", error: err.message });
+  }
+};
+
+exports.getUsers = async (req, res) => {
+  try {
+    const user = await authenticateToken(req);
+    console.log("authenticated user:", user.name);
+
+    const users = await User.find({}, { password: 0, __v: 0 });
+    res.status(200).json(users);
+  } catch (err) {
+    res.status(err.status || 500).json({
+      message: err.message || "Internal Server Error",
+    });
   }
 };

@@ -1,0 +1,13 @@
+{
+  "ignore": [
+    "logs/*",
+    "uploads/*",
+    "*.log",
+    "tmp/*",
+    "*.test.js",
+    "*.log",
+    "node_modules/",
+    ".git",
+    "utils/authUtils.js"
+  ]
+}
