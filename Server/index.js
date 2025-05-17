@@ -1,67 +1,93 @@
 const http = require("http");
 const express = require("express");
-const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
 const { Server } = require("socket.io");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
+const app = express();
 app.use(express.json());
 app.use(cors());
 
-const server = http.createServer(app); // Create HTTP server for socket.io
+// Create HTTP server
+const server = http.createServer(app);
 
-// Initialize socket.io
+// ========== Socket.IO Setup ==========
 const io = new Server(server, {
   cors: {
-    origin: "*", // In production, restrict to your frontend domain
+    origin: "*", // In production, restrict this
     methods: ["GET", "POST"],
   },
 });
 
-// ✅ Add middleware BEFORE any socket events
-io.use(async (socket, next) => {
+// ========== Socket Authentication Middleware ==========
+io.use((socket, next) => {
   const token = socket.handshake.auth.token;
+  console.log("[Socket Auth] Token received:", token);
+
+  if (!token) {
+    console.error("[Socket Auth] ❌ Missing token");
+    return next(new Error("Authentication token missing"));
+  }
+
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // or JWT_SECRET if imported
-    socket.user = decoded;
-    socket.join(decoded._id.toString()); // 👈 Join personal room
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("[Socket Auth] ✅ Token decoded:", decoded);
+
+    // socket.user = decoded;
+    socket.user = { ...decoded, _id: decoded.id };
+    socket.join(decoded.id.toString());
+    console.log(`[Socket Auth] 🟢 User ${decoded.id} joined personal room`);
     next();
   } catch (err) {
-    next(new Error("Authentication error"));
+    console.error("[Socket Auth] ❌ Invalid token:", err.message);
+    return next(new Error("Authentication error"));
   }
 });
 
-// ========== Socket.io Events ==========
+// ========== Socket Events ==========
 io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+  const userId = socket.user?.id;
+  console.log(
+    `[Socket Auth] 🟢 Socket Events- userId: ${userId}, socketId: ${socket.id}`
+  );
+  if (userId) {
+    console.log(
+      `✅ [Socket Connected] User ${userId} connected with socket ${socket.id}`
+    );
+    socket.join(userId.toString());
+  } else {
+    console.warn("⚠️ [Socket Connected] Connected without a valid user");
+  }
 
-  socket.on("join", (userId) => {
-    socket.join(userId); // So we can emit to this user
-    console.log(`User ${userId} joined their room`);
-  });
-
-  // Join a room for a specific note
   socket.on("join-note", (noteId) => {
     socket.join(noteId);
-    console.log(`Socket ${socket.id} joined note room: ${noteId}`);
+    console.log(
+      `📝 [join-note] Socket ${socket.id} joined note room: ${noteId}`
+    );
   });
 
-  // Receive an update and broadcast it to others
   socket.on("send-update", ({ noteId, updatedContent }) => {
-    // Broadcast update to everyone else in the room
+    console.log(
+      `📤 [send-update] Broadcasting update to note ${noteId} from ${socket.id}`
+    );
     socket.to(noteId).emit("receive-update", updatedContent);
-    console.log(`Update sent to note ${noteId} from ${socket.id}`);
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    console.log(
+      `❌ [Socket Disconnected] User ${userId || "unknown"} (socket: ${
+        socket.id
+      })`
+    );
   });
 });
 
+// ========== Share `io` with Controllers ==========
 app.set("io", io);
 
-// ========== MongoDB and API Routes ==========
+// ========== MongoDB ==========
 const db_name = "collabNotes";
 const mongoUrl =
   process.env.NODE_ENV === "production"
@@ -69,11 +95,11 @@ const mongoUrl =
     : `mongodb://0.0.0.0:27017/${db_name}`;
 
 mongoose
-  .connect(mongoUrl, { useNewUrlParser: true })
-  .then(() => console.log("Connected to Database"))
-  .catch((e) => console.log(e));
+  .connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((e) => console.error("❌ MongoDB connection error:", e));
 
-// Routes and middleware
+// ========== Routes & Middleware ==========
 const authRoutes = require("./routes/auth");
 const noteRoutes = require("./routes/notes");
 const notificationRoutes = require("./routes/notificationRoutes");
@@ -87,7 +113,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/notifications", notificationRoutes);
 
-// Start server (attach HTTP server, not app)
-server.listen(5000, () => {
-  console.log("Server started on port 5000");
+// ========== Start Server ==========
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`🚀 Server started on port ${PORT}`);
 });

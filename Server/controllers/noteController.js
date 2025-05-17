@@ -259,6 +259,15 @@ exports.shareNote = async (req, res) => {
       // ✅ Emit notification via Socket.IO
       const io = req.app.get("io");
       if (io) {
+        console.log(`[Backend] Emitting notification to user: ${userId}`);
+        console.log("[Backend] Notification payload:", {
+          _id: notification._id,
+          user: userId,
+          message,
+          note: note._id,
+          createdAt: notification.createdAt,
+        });
+
         io.to(userId.toString()).emit("new_notification", {
           _id: notification._id,
           user: userId,
@@ -266,6 +275,8 @@ exports.shareNote = async (req, res) => {
           note: note._id,
           createdAt: notification.createdAt,
         });
+      } else {
+        console.warn("[Backend] Socket.IO instance not found");
       }
     }
 
