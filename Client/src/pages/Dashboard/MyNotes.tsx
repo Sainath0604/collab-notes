@@ -33,7 +33,7 @@ const MyNotesPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const { token } = useAuth();
+  const { token, newNotification } = useAuth();
   const navigate = useNavigate();
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [activeNoteCollaborators, setActiveNoteCollaborators] = useState<
@@ -45,57 +45,65 @@ const MyNotesPage: React.FC = () => {
 
   const loggedInEmail = getLoggedInEmail();
 
+  const fetchAllUsers = async () => {
+    try {
+      const res = await fetch(`${host}/api/auth/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to fetch users");
+
+      const userMap: { [id: string]: { name: string; email: string } } = {};
+      for (const user of data) {
+        userMap[user._id] = { name: user.name, email: user.email };
+      }
+      setAllUsers(userMap);
+    } catch (err) {
+      console.error("Error fetching users", err);
+    }
+  };
+
+  const fetchNotes = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${host}/api/notes?page=${page}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data: ApiResponse = await res.json();
+      if (!res.ok)
+        throw new Error((data as any).message || "Failed to fetch notes");
+
+      setNotes(data.notes);
+      setTotalPages(data.totalPages);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Fetch all users once on mount (or token change)
   useEffect(() => {
-    const fetchAllUsers = async () => {
-      try {
-        const res = await fetch(`${host}/api/auth/users`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to fetch users");
-
-        const userMap: { [id: string]: { name: string; email: string } } = {};
-        for (const user of data) {
-          userMap[user._id] = { name: user.name, email: user.email };
-        }
-        setAllUsers(userMap);
-      } catch (err) {
-        console.error("Error fetching users", err);
-      }
-    };
-
     fetchAllUsers();
   }, [token]);
 
   // Fetch notes for current page
   useEffect(() => {
-    const fetchNotes = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`${host}/api/notes?page=${page}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data: ApiResponse = await res.json();
-        if (!res.ok)
-          throw new Error((data as any).message || "Failed to fetch notes");
-
-        setNotes(data.notes);
-        setTotalPages(data.totalPages);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchNotes();
   }, [page, token]);
+
+  useEffect(() => {
+    if (newNotification) {
+      console.log("[MyNotesPage] Detected new notification. Refreshing notes.");
+      fetchNotes();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newNotification]);
 
   const handlePrev = () => setPage((prev) => Math.max(prev - 1, 1));
   const handleNext = () => setPage((prev) => Math.min(prev + 1, totalPages));

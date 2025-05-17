@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { logoutAPI } from "../../constant/api-constants";
 import { notification } from "antd";
 import { getSocket } from "../../utils/socket";
+import NotificationBell from "../../components/NotificationBell";
 
 const DashboardLayout: React.FC = () => {
   const location = useLocation();
@@ -54,10 +55,14 @@ const DashboardLayout: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen relative">
+      <div className="absolute top-4 right-4 z-50">
+        <NotificationBell />
+      </div>
       <aside className="w-64 bg-gray-800 text-white p-4 flex flex-col justify-between">
         <div>
           <h2 className="text-xl font-bold mb-6">Dashboard</h2>
+
           <nav className="space-y-2">
             {links.map((link) => (
               <Link
