@@ -112,7 +112,7 @@ const MyNotesPage: React.FC = () => {
   if (error) return <p className="p-4 text-red-500">{error}</p>;
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-4rem)] px-4 py-6">
+    <div className="flex flex-col h-full max-h-[calc(100vh-4rem)] px-4 py-6 bg-emerald-50">
       {/* Scrollable Notes Area */}
       <div className="flex-1 overflow-y-auto space-y-4 pr-1">
         {notes.length === 0 ? (
@@ -132,7 +132,7 @@ const MyNotesPage: React.FC = () => {
               </button>
               <button
                 onClick={() => navigate("/dashboard/create-note")}
-                className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600"
+                className="px-4 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600"
               >
                 Create Note
               </button>
@@ -152,7 +152,7 @@ const MyNotesPage: React.FC = () => {
               return (
                 <div
                   key={note._id}
-                  className="bg-white shadow-md rounded-xl p-4 border hover:shadow-lg transition"
+                  className="bg-emerald-100 shadow-md rounded-xl p-4 border hover:shadow-lg transition"
                 >
                   <h3 className="text-lg font-semibold">{note.title}</h3>
                   <p className="text-sm text-gray-600 line-clamp-3">

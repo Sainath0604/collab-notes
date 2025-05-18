@@ -1,4 +1,5 @@
-export const host = "http://localhost:5000";
+// export const host = "http://localhost:5000";
+export const host = "https://collab-notes-jp6i.onrender.com";
 export const auth = "api/auth";
 export const notes = "api/notes";
 export const loginAPI = `${host}/${auth}/login`;

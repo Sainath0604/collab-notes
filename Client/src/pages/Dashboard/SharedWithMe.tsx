@@ -115,15 +115,15 @@ const SharedWithMe: React.FC = () => {
             <h2 className="text-xl font-semibold text-gray-700">
               You don’t have any shared notes.
             </h2>
-            <p className="text-gray-500">Get started by creating notes.</p>
+            {/* <p className="text-gray-500">Get started by creating notes.</p>
             <div className="flex gap-4">
               <button
                 onClick={() => navigate("/dashboard/create-note")}
-                className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600"
+                className="px-4 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600"
               >
                 Create Note
               </button>
-            </div>
+            </div> */}
           </div>
         ) : (
           <div className="space-y-4">
@@ -177,17 +177,6 @@ const SharedWithMe: React.FC = () => {
                       className="text-green-600 hover:underline text-sm"
                     >
                       Edit
-                    </button>
-                    <button
-                      onClick={() => {
-                        setActiveNoteId(note._id);
-                        setActiveNoteCollaborators(
-                          note.collaborators.map((c) => c.userId)
-                        );
-                      }}
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      Share
                     </button>
                   </div>
                 </div>

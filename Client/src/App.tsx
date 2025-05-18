@@ -37,7 +37,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <AuthProvider>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-emerald-50">
           <Routes>
             <Route
               path="/login"
