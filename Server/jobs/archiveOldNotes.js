@@ -1,7 +1,11 @@
+const Note = require("../models/Note");
+
+const THIRTY_DAYS = 1000 * 60 * 60 * 24 * 30;
+
 const archiveOldNotesJob = () => {
   const runJob = async () => {
+    const thresholdDate = new Date(Date.now() - THIRTY_DAYS);
     try {
-      const thresholdDate = new Date(Date.now() - THIRTY_DAYS);
       const result = await Note.updateMany(
         {
           archived: false,
@@ -18,14 +22,11 @@ const archiveOldNotesJob = () => {
     }
   };
 
-  // Wait for mongoose to connect before starting
-  if (mongoose.connection.readyState === 1) {
-    runJob();
-  } else {
-    mongoose.connection.once("open", () => {
-      runJob();
-    });
-  }
+  // Run immediately on server start
+  runJob();
 
-  setInterval(runJob, 24 * 60 * 60 * 1000); // Run every 24 hours
+  // Run every 24 hours (86400000 ms)
+  setInterval(runJob, 24 * 60 * 60 * 1000);
 };
+
+module.exports = archiveOldNotesJob;
