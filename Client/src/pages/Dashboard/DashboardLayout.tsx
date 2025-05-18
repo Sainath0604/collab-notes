@@ -59,9 +59,9 @@ const DashboardLayout: React.FC = () => {
       <div className="absolute top-4 right-4 z-50">
         <NotificationBell />
       </div>
-      <aside className="w-64 bg-gray-800 text-white p-4 flex flex-col justify-between">
+      <aside className="w-64 bg-emerald-200 text-gray-800 p-4 flex flex-col justify-between">
         <div>
-          <h2 className="text-xl font-bold mb-6">Dashboard</h2>
+          <h2 className="text-xl font-bold mb-6 text-emerald-900">Dashboard</h2>
 
           <nav className="space-y-2">
             {links.map((link) => (
@@ -72,8 +72,8 @@ const DashboardLayout: React.FC = () => {
                   (location.pathname === "/dashboard" &&
                     link.to === "/dashboard/my-notes") ||
                   location.pathname === link.to
-                    ? "bg-gray-700"
-                    : "hover:bg-gray-700"
+                    ? "bg-emerald-400 text-emerald-800"
+                    : "hover:bg-emerald-400 text-emerald-800"
                 }`}
               >
                 {link.label}
@@ -88,7 +88,7 @@ const DashboardLayout: React.FC = () => {
           Logout
         </button>
       </aside>
-      <main className="flex-1 p-6 bg-gray-50">
+      <main className="flex-1 p-6 bg-emerald-50">
         <Outlet />
       </main>
     </div>

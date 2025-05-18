@@ -177,13 +177,14 @@ const NoteEditor: React.FC = () => {
   if (error) return <p className="p-4 text-red-500">{error}</p>;
 
   return (
-    <div className="p-6 space-y-4 max-w-4xl mx-auto">
+    <div className="p-6 space-y-4 max-w-4xl mx-auto bg-emerald-50">
       <input
         type="text"
         value={title}
         onChange={handleTitleChange}
         onBlur={handleSave}
-        className="w-full text-2xl font-semibold border-b focus:outline-none"
+        className="w-full text-2xl font-semibold border-b focus:outline-none py-2 px-4 rounded-lg 
+        border border-emerald-300/20 focus:ring-1 focus:ring-emerald-600"
         placeholder="Note Title"
       />
 
@@ -203,14 +204,15 @@ const NoteEditor: React.FC = () => {
         value={content}
         onChange={handleContentChange}
         onBlur={handleSave}
-        className="w-full h-[60vh] border rounded-lg p-4 resize-none focus:outline-none focus:ring"
+        className="w-full h-[60vh] rounded-lg p-4 resize-none focus:outline-none focus:ring-1 focus:ring-emerald-600
+        border border-emerald-300/20"
         placeholder="Start writing..."
       />
 
       <div className="flex justify-end">
         <button
           onClick={handleSave}
-          className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-6 py-2 bg-emerald-500 text-white rounded hover:bg-emerald-600"
         >
           Save
         </button>

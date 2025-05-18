@@ -86,8 +86,8 @@ const ShareModal: React.FC<ShareModalProps> = ({
             disabled={!selectedUserId || loading}
             className={`px-4 py-2 rounded text-white ${
               loading || !selectedUserId
-                ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
+                ? "bg-emerald-400 cursor-not-allowed"
+                : "bg-emerald-500 hover:bg-emerald-600"
             }`}
           >
             {loading ? "Sharing..." : "Share"}
